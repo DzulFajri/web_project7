@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->enum('status', ['in stock', 'sold out', 'coming soon'])->default('in_stock');
+            $table->enum('status',
+                ['in stock', 'sold out', 'coming soon'])
+                ->default('in stock');
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->enum('status', ['in stock', 'sold out', 'coming soon'])->default('in stock');
+            //
         });
     }
 };
