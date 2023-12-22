@@ -11,30 +11,27 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return Order::whereDate('created_at', today())->count() ? 'NEW' : '';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
-                Forms\Components\Select::make('product_id')
-                    ->relationship('product', 'id')
-                    ->required(),
-                Forms\Components\TextInput::make('price')
-                    ->required()
-                    ->numeric()
-                    ->prefix('$'),
-                Forms\Components\Toggle::make('is_completed')
-                    ->required(),
+                //
             ]);
     }
 
@@ -42,36 +39,59 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('product.id')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at'),
+                Tables\Columns\TextColumn::make('product.name'),
+                Tables\Columns\TextColumn::make('user.name'),
                 Tables\Columns\TextColumn::make('price')
-                    ->money()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\IconColumn::make('is_completed')
-                    ->boolean(),
+                    ->money('usd')
+                    ->getStateUsing(function (Order $record): float {
+                        return $record->price / 100;
+                    })
+                    ->summarize(Tables\Columns\Summarizers\Sum::make()
+                        ->formatStateUsing(fn ($state) => '$' . number_format($state / 100, 2))
+                    ),
             ])
+            ->defaultSort('created_at', 'desc')
+            // ->defaultGroup('product.name')
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+//                    Tables\Actions\Action::make('Mark Completed')
+//                        ->requiresConfirmation()
+//                        ->hidden(fn (Order $record) => $record->is_completed)
+//                        ->icon('heroicon-o-check-badge')
+//                        ->action(fn (Order $record) => $record->update(['is_completed' => true])),
+                    Tables\Actions\Action::make('Change is completed')
+                        ->icon('heroicon-o-check-badge')
+                        ->fillForm(function (Order $order) {
+                            return ['is_completed' => $order->is_completed];
+                        })
+                        ->form([
+                            Forms\Components\Checkbox::make('is_completed'),
+                        ])
+                        ->action(function (Order $order, array $data): void {
+                            $order->update(['is_completed' => $data['is_completed']]);
+                        }),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('Mark as Completed')
+                        ->icon('heroicon-o-check-badge')
+                        ->requiresConfirmation()
+                        ->action(fn (Collection $records) => $records->each->update(['is_completed' => true]))
+                        ->deselectRecordsAfterCompletion()
                 ]),
+            ])
+//            ->headerActions([
+//                Tables\Actions\Action::make('New Order')
+//                    ->url(fn (): string => OrderResource::getUrl('create')),
+//            ])
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
             ]);
     }
 
@@ -86,8 +106,8 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'create' => Pages\CreateOrder::route('/create'),
-            'edit' => Pages\EditOrder::route('/{record}/edit'),
+//            'create' => Pages\CreateOrder::route('/create'),
+//            'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
 }
