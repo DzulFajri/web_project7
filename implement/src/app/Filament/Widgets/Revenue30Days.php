@@ -15,7 +15,7 @@ class Revenue30Days extends BaseWidget
     protected function getStats(): array
     {
         return [
-//            Stat::make('Revenue Last 30 Days (USD)',
+//            Stat::make('Revenue Last 30 Days (IDR)',
 //                number_format(Order::where('created_at', '>=', now()->subDays(30)->startOfDay())->sum('price') / 100, 2))
         ];
     }

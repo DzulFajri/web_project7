@@ -15,7 +15,7 @@ class Revenue7Days extends BaseWidget
     protected function getStats(): array
     {
         return [
-//            Stat::make('Revenue Last 7 Days (USD)',
+//            Stat::make('Revenue Last 7 Days (IDR)',
 //                number_format(Order::where('created_at', '>=', now()->subDays(7)->startOfDay())->sum('price') / 100, 2))
         ];
     }
