@@ -24,7 +24,7 @@ class LatestOrders extends BaseWidget
                 Tables\Columns\TextColumn::make('product.name'),
                 Tables\Columns\TextColumn::make('user.name'),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('usd')
+                    ->money('idr')
                     ->getStateUsing(function (Order $record): float {
                         return $record->price / 100;
                     })
