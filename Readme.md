@@ -1,3 +1,1 @@
-# BASIS DATA 
-
-## PERTEMUAN 6 dan 7
+# project web kelompok 7
